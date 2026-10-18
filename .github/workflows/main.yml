@@ -20,22 +20,8 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Find newest Fabric API for 26.1.2
-        working-directory: anubis-261
-        run: |
-          V=$(python3 build-support/latest_fabric_api.py 26.1.2)
-          echo "Fabric API: ${V:-<none found, using gradle.properties>}"
-          echo "FABRIC_API_ARG=${V:+-Pfabric_api_version=$V}" >> "$GITHUB_ENV"
-
-      - name: Port source to Mojang names (skips itself if already done)
-        working-directory: anubis-261
-        run: python3 build-support/port_to_mojang.py src/main 1.21.11 2>&1 | tee port-log.txt
-
       - name: Build
-        working-directory: anubis-261
-        run: |
-          chmod +x gradlew
-          ./gradlew build $FABRIC_API_ARG --stacktrace 2>&1 | tee build-log.txt
+        run: bash anubis-261/ci/build.sh
 
       - name: Upload the mod jar
         if: success()
@@ -46,7 +32,7 @@ jobs:
             anubis-261/build/libs/*.jar
             !anubis-261/build/libs/*-sources.jar
 
-      - name: Upload ported source + logs (needed if the build fails)
+      - name: Upload ported source + logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
